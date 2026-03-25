@@ -1,8 +1,7 @@
 package com.projeto.cadastroCliente.model;
 
-
-import com.projeto.cadastroCliente.model.enums.CpfCnpj;
 import com.projeto.cadastroCliente.model.enums.TipoDePessoa;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -15,17 +14,20 @@ public class Cliente {
     @Column(nullable = false)
     private String nomeDoCliente;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoDePessoa tipoDePessoa;
 
-    @Column(nullable = false, unique = true)
-    private CpfCnpj cpfCnpj;
+    @Column(unique = true)
+    private String cpf;
+
+    @Column(unique = true)
+    private String cnpj;
 
     @Column(nullable = false)
     private String telefone;
 
     private String email;
-
 
     public Long getId() {
         return id;
@@ -51,12 +53,20 @@ public class Cliente {
         this.tipoDePessoa = tipoDePessoa;
     }
 
-    public CpfCnpj getCpfCnpj() {
-        return cpfCnpj;
+    public String getCpf() {
+        return cpf;
     }
 
-    public void setCpfCnpj(CpfCnpj cpfCnpj) {
-        this.cpfCnpj = cpfCnpj;
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+
+    public String getCnpj() {
+        return cnpj;
+    }
+
+    public void setCnpj(String cnpj) {
+        this.cnpj = cnpj;
     }
 
     public String getTelefone() {
@@ -73,5 +83,25 @@ public class Cliente {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validarDocumento() {
+        if (tipoDePessoa == TipoDePessoa.FISICA) {
+            if (cpf == null || cpf.isBlank()) {
+                throw new IllegalStateException("CPF é obrigatório para pessoa física");
+            }
+            if (cnpj != null && !cnpj.isBlank()) {
+                throw new IllegalStateException("Pessoa física não pode ter CNPJ");
+            }
+        } else if (tipoDePessoa == TipoDePessoa.JURIDICA) {
+            if (cnpj == null || cnpj.isBlank()) {
+                throw new IllegalStateException("CNPJ é obrigatório para pessoa jurídica");
+            }
+            if (cpf != null && !cpf.isBlank()) {
+                throw new IllegalStateException("Pessoa jurídica não pode ter CPF");
+            }
+        }
     }
 }
