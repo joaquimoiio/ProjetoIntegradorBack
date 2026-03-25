@@ -1,6 +1,7 @@
 package com.projeto.cadastroCliente.controller;
 
 import com.projeto.cadastroCliente.dto.ClienteDto;
+import com.projeto.cadastroCliente.dto.PutDTO;
 import com.projeto.cadastroCliente.model.Cliente;
 import com.projeto.cadastroCliente.service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,8 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> atualizarCliente(@PathVariable Long id, @RequestBody ClienteDto clienteDto) {
-        return ResponseEntity.ok(clienteService.atualizar(id, clienteDto));
+    public ResponseEntity<Cliente> atualizarCliente(@PathVariable Long id, @RequestBody PutDTO putDTO) {
+        return ResponseEntity.ok(clienteService.atualizar(id, putDTO));
     }
 
 

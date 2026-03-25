@@ -1,6 +1,7 @@
 package com.projeto.cadastroCliente.service;
 
 import com.projeto.cadastroCliente.dto.ClienteDto;
+import com.projeto.cadastroCliente.dto.PutDTO;
 import com.projeto.cadastroCliente.exception.ClienteException;
 import com.projeto.cadastroCliente.model.Cliente;
 import com.projeto.cadastroCliente.model.enums.TipoDePessoa;
@@ -113,18 +114,15 @@ class ClienteServiceTest {
 
     @Test
     void deveAtualizarClienteComSucesso() {
-        ClienteDto updateDto = new ClienteDto(
-                "João Silva",
-                TipoDePessoa.FISICA,
-                "52998224725",
+        PutDTO putDTO = new PutDTO(
                 "(11) 77777-7777",
-                "joao.novo@email.com"
+                "joaao.novo@email.com"
         );
 
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(clienteFisica));
         when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
 
-        Cliente resultado = clienteService.atualizar(1L, updateDto);
+        Cliente resultado = clienteService.atualizar(1L, putDTO);
 
         assertNotNull(resultado);
         assertEquals("(11) 77777-7777", resultado.getTelefone());

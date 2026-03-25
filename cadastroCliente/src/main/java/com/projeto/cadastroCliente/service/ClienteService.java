@@ -1,6 +1,7 @@
 package com.projeto.cadastroCliente.service;
 
 import com.projeto.cadastroCliente.dto.ClienteDto;
+import com.projeto.cadastroCliente.dto.PutDTO;
 import com.projeto.cadastroCliente.exception.ClienteException;
 import com.projeto.cadastroCliente.model.Cliente;
 import com.projeto.cadastroCliente.model.enums.TipoDePessoa;
@@ -60,10 +61,10 @@ public class ClienteService {
         clienteRepository.deleteById(id);
     }
 
-    public Cliente atualizar(Long id, ClienteDto clienteDto) {
+    public Cliente atualizar(Long id, PutDTO putDTO) {
         Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Empresa não encontrada"));
-        cliente.setEmail(clienteDto.email());
-        cliente.setTelefone(clienteDto.telefone());
+        cliente.setEmail(putDTO.email());
+        cliente.setTelefone(putDTO.telefone());
 
         return clienteRepository.save(cliente);
     }

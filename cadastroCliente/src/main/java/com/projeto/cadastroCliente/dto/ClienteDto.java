@@ -16,8 +16,6 @@ public record ClienteDto(@NotBlank(message = "O nome do cliente nao pode estar e
 
                          @NotBlank(message = "O e-mail não pode estar em branco")
                          String telefone,
-
-                         @Email(message = "E-mail inválido")
                          String email) {
 
     public ClienteDto {
