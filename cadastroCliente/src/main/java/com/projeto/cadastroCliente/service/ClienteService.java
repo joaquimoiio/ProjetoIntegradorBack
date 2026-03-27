@@ -48,7 +48,6 @@ public class ClienteService {
 
         return clienteRepository.save(cliente);
     }
-
     public List<Cliente> lista() {
         return clienteRepository.findAll();
     }
@@ -62,7 +61,7 @@ public class ClienteService {
     }
 
     public Cliente atualizar(Long id, PutDTO putDTO) {
-        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Empresa não encontrada"));
+        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Cliente não encontrada"));
         cliente.setEmail(putDTO.email());
         cliente.setTelefone(putDTO.telefone());
 

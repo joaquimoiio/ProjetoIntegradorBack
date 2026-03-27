@@ -27,7 +27,6 @@ public class SecurityConfig {
                 )
                 .httpBasic(Customizer.withDefaults())
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()));
-
         return http.build();
     }
 
