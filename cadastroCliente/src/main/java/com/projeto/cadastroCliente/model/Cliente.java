@@ -4,6 +4,8 @@ import com.projeto.cadastroCliente.model.enums.TipoDePessoa;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 public class Cliente {
 
@@ -28,6 +30,8 @@ public class Cliente {
     private String telefone;
 
     private String email;
+
+    private boolean sync = false;
 
     public Long getId() {
         return id;
@@ -83,6 +87,14 @@ public class Cliente {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isSync() {
+        return sync;
+    }
+
+    public void setSync(boolean sync) {
+        this.sync = sync;
     }
 
     @PrePersist
