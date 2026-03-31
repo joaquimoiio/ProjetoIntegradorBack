@@ -71,27 +71,58 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
-    public Cliente salvar(Cliente cliente) {
-        if (cliente.getCpf() != null && clienteRepository.existsByCpf(cliente.getCpf())) {
-            Cliente existente = clienteRepository.findByCpf(cliente.getCpf());
-            existente.setTelefone(cliente.getTelefone());
-            existente.setEmail(cliente.getEmail());
-            existente.setSync(true);
-            return clienteRepository.save(existente);
-        }
+    public void salvar(Cliente cliente) {
 
-        if (cliente.getCnpj() != null && clienteRepository.existsByCnpj(cliente.getCnpj())) {
-            Cliente existente = clienteRepository.findByCnpj(cliente.getCnpj());
-            existente.setTelefone(cliente.getTelefone());
-            existente.setEmail(cliente.getEmail());
-            existente.setSync(true);
-            return clienteRepository.save(existente);
-        }
+        if (!cliente.isSync()) {
+            String cpf = (cliente.getCpf() != null && !cliente.getCpf().isEmpty()) ? cliente.getCpf() : null;
+            String cnpj = (cliente.getCnpj() != null && !cliente.getCnpj().isEmpty()) ? cliente.getCnpj() : null;
 
-        cliente.setSync(true);
-        return clienteRepository.save(cliente);
+            cliente.setCpf(cpf);
+            cliente.setCnpj(cnpj);
+
+            if (cpf != null && clienteRepository.existsByCpf(cpf)) {
+                Cliente existente = clienteRepository.findByCpf(cpf);
+                existente.setNomeDoCliente(cliente.getNomeDoCliente());
+                existente.setTelefone(cliente.getTelefone());
+                existente.setEmail(cliente.getEmail());
+                existente.setSync(true);
+                clienteRepository.save(existente);
+            }
+
+            if (cnpj != null && clienteRepository.existsByCnpj(cnpj)) {
+                Cliente existente = clienteRepository.findByCnpj(cnpj);
+                existente.setNomeDoCliente(cliente.getNomeDoCliente());
+                existente.setTelefone(cliente.getTelefone());
+                existente.setEmail(cliente.getEmail());
+                existente.setSync(true);
+                clienteRepository.save(existente);
+            }
+
+            cliente.setSync(true);
+            clienteRepository.save(cliente);
+        }
     }
 
+    public boolean existeCliente(String cpf, String cnpj) {
+        if (cpf != null && !cpf.equals("null")) {
+            return clienteRepository.existsByCpf(cpf);
+        }
+        if (cnpj != null && !cnpj.equals("null")) {
+            return clienteRepository.existsByCnpj(cnpj);
+        }
+        return false;
+    }
+
+    public List<Cliente> listaNaoSincronizados() {
+        return clienteRepository.findBySync(false);
+    }
+
+    public void marcarClienteComSync(List<Cliente> clientes){
+        for (Cliente cliente : clientes) {
+            cliente.setSync(true);
+            clienteRepository.save(cliente);
+        }
+    }
 
 
 }

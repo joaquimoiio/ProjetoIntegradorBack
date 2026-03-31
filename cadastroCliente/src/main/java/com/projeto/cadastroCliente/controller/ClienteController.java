@@ -38,5 +38,10 @@ public class ClienteController {
         return ResponseEntity.ok(clienteService.atualizar(id, putDTO));
     }
 
+    @DeleteMapping("/{id}")
+    public void deletarCliente(@PathVariable Long id){
+        clienteService.deletar(id);
+    }
+
 
 }
