@@ -71,10 +71,25 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
-    public void enviarDados(){
+    public Cliente salvar(Cliente cliente) {
+        if (cliente.getCpf() != null && clienteRepository.existsByCpf(cliente.getCpf())) {
+            Cliente existente = clienteRepository.findByCpf(cliente.getCpf());
+            existente.setTelefone(cliente.getTelefone());
+            existente.setEmail(cliente.getEmail());
+            existente.setSync(true);
+            return clienteRepository.save(existente);
+        }
 
+        if (cliente.getCnpj() != null && clienteRepository.existsByCnpj(cliente.getCnpj())) {
+            Cliente existente = clienteRepository.findByCnpj(cliente.getCnpj());
+            existente.setTelefone(cliente.getTelefone());
+            existente.setEmail(cliente.getEmail());
+            existente.setSync(true);
+            return clienteRepository.save(existente);
+        }
 
-
+        cliente.setSync(true);
+        return clienteRepository.save(cliente);
     }
 
 
