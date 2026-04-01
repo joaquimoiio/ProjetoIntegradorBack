@@ -47,19 +47,23 @@ public class ClienteService {
         cliente.setTelefone(clienteDto.telefone());
         cliente.setEmail(clienteDto.email());
         cliente.setSync(false);
+        cliente.setDeletado(false);
 
         return clienteRepository.save(cliente);
     }
     public List<Cliente> lista() {
-        return clienteRepository.findAll();
+        return clienteRepository.findAllClientes();
     }
 
     public Optional<Cliente> buscarPorId(Long id){
-        return clienteRepository.findById(id);
+        return clienteRepository.findClienteById(id);
     }
 
-    public void deletar(Long id) {
-        clienteRepository.deleteById(id);
+    public Cliente deletar(Long id) {
+        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Cliente não encontrada"));
+        cliente.setSync(false);
+        cliente.setDeletado(true);
+        return clienteRepository.save(cliente);
     }
 
     public Cliente atualizar(Long id, PutDTO putDTO) {
@@ -71,9 +75,8 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
-    public void salvar(Cliente cliente) {
+    public Cliente salvar(Cliente cliente) {
 
-        if (!cliente.isSync()) {
             String cpf = (cliente.getCpf() != null && !cliente.getCpf().isEmpty()) ? cliente.getCpf() : null;
             String cnpj = (cliente.getCnpj() != null && !cliente.getCnpj().isEmpty()) ? cliente.getCnpj() : null;
 
@@ -86,7 +89,8 @@ public class ClienteService {
                 existente.setTelefone(cliente.getTelefone());
                 existente.setEmail(cliente.getEmail());
                 existente.setSync(true);
-                clienteRepository.save(existente);
+                existente.setDeletado(cliente.isDeletado());
+                return clienteRepository.save(existente);
             }
 
             if (cnpj != null && clienteRepository.existsByCnpj(cnpj)) {
@@ -95,12 +99,13 @@ public class ClienteService {
                 existente.setTelefone(cliente.getTelefone());
                 existente.setEmail(cliente.getEmail());
                 existente.setSync(true);
-                clienteRepository.save(existente);
+                existente.setDeletado(cliente.isDeletado());
+                return clienteRepository.save(existente);
             }
 
             cliente.setSync(true);
-            clienteRepository.save(cliente);
-        }
+            return clienteRepository.save(cliente);
+
     }
 
     public boolean existeCliente(String cpf, String cnpj) {
@@ -123,6 +128,4 @@ public class ClienteService {
             clienteRepository.save(cliente);
         }
     }
-
-
 }

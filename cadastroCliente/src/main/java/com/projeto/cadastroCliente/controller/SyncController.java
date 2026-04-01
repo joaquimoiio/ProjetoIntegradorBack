@@ -13,11 +13,11 @@ import java.util.List;
 public class SyncController {
 
     @Autowired
-    private ClienteService clienteService;
+    private ClienteService service;
 
     @PostMapping("/cliente")
     public ResponseEntity<Cliente> receberCliente(@RequestBody Cliente cliente) {
-        Cliente salvo = clienteService.salvar(cliente);
+        Cliente salvo = service.salvar(cliente);
         return ResponseEntity.ok(salvo);
     }
 
@@ -25,14 +25,14 @@ public class SyncController {
     public ResponseEntity<Boolean> existeCliente(
             @PathVariable(required = false) String cpf,
             @PathVariable(required = false) String cnpj) {
-        boolean exists = clienteService.existeCliente(cpf, cnpj);
+        boolean exists = service.existeCliente(cpf, cnpj);
         return ResponseEntity.ok(exists);
     }
 
     @GetMapping("/cliente")
     public ResponseEntity<List<Cliente>> listarClientes() {
-        List<Cliente> clientes = clienteService.listaNaoSincronizados();
-        clienteService.marcarClienteComSync(clientes);
+        List<Cliente> clientes = service.listaNaoSincronizados();
+        service.marcarClienteComSync(clientes);
         return ResponseEntity.ok(clientes);
     }
 }

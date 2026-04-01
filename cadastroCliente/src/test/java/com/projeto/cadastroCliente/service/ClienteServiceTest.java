@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,8 +36,7 @@ class ClienteServiceTest {
 
     @BeforeEach
     void setUp() {
-        // CPF válido: 529.982.247-25
-        // CNPJ válido: 04.470.781/0001-39
+
         clienteFisicaDto = new ClienteDto(
                 "João Silva",
                 TipoDePessoa.FISICA,
@@ -97,18 +97,18 @@ class ClienteServiceTest {
     @Test
     void deveLancarExcecaoQuandoCpfJaExiste() {
         when(clienteRepository.existsByCpf(anyString())).thenReturn(true);
-        assertThrows(ClienteException.class, () -> {
-            clienteService.cadastrar(clienteFisicaDto);
-        });
+
+        assertThrows(ClienteException.class, () -> clienteService.cadastrar(clienteFisicaDto));
+
         verify(clienteRepository, never()).save(any(Cliente.class));
     }
 
     @Test
     void deveLancarExcecaoQuandoCnpjJaExiste() {
         when(clienteRepository.existsByCnpj(anyString())).thenReturn(true);
-        assertThrows(ClienteException.class, () -> {
-            clienteService.cadastrar(clienteJuridicaDto);
-        });
+
+        assertThrows(ClienteException.class, () -> clienteService.cadastrar(clienteJuridicaDto));
+
         verify(clienteRepository, never()).save(any(Cliente.class));
     }
 
@@ -116,11 +116,19 @@ class ClienteServiceTest {
     void deveAtualizarClienteComSucesso() {
         PutDTO putDTO = new PutDTO(
                 "(11) 77777-7777",
-                "joaao.novo@email.com"
+                "joao.novo@email.com"
         );
 
+        Cliente clienteAtualizado = new Cliente();
+        clienteAtualizado.setId(1L);
+        clienteAtualizado.setNomeDoCliente("João Silva");
+        clienteAtualizado.setTipoDePessoa(TipoDePessoa.FISICA);
+        clienteAtualizado.setCpf("52998224725");
+        clienteAtualizado.setTelefone("(11) 77777-7777");
+        clienteAtualizado.setEmail("joao.novo@email.com");
+
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(clienteFisica));
-        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteAtualizado);
 
         Cliente resultado = clienteService.atualizar(1L, putDTO);
 
@@ -131,11 +139,37 @@ class ClienteServiceTest {
     }
 
     @Test
-    void deveDeletarCliente() {
-        doNothing().when(clienteRepository).deleteById(1L);
+    void deveLancarExcecaoAoAtualizarClienteInexistente() {
+        PutDTO putDTO = new PutDTO("(11) 77777-7777", "joao.novo@email.com");
 
-        clienteService.deletar(1L);
+        when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
 
-        verify(clienteRepository).deleteById(1L);
+        assertThrows(ClienteException.class, () -> clienteService.atualizar(99L, putDTO));
+
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveDeletarClienteComSoftDelete() {
+        // O serviço faz soft delete: marca deletado=true e chama save(), não deleteById()
+        when(clienteRepository.findById(1L)).thenReturn(Optional.of(clienteFisica));
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
+
+        Cliente resultado = clienteService.deletar(1L);
+
+        assertNotNull(resultado);
+        assertTrue(clienteFisica.isDeletado());
+        assertFalse(clienteFisica.isSync());
+        verify(clienteRepository).save(any(Cliente.class));
+        verify(clienteRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    void deveLancarExcecaoAoDeletarClienteInexistente() {
+        when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ClienteException.class, () -> clienteService.deletar(99L));
+
+        verify(clienteRepository, never()).save(any(Cliente.class));
     }
 }

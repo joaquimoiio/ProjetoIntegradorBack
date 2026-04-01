@@ -33,6 +33,16 @@ public class Cliente {
 
     private boolean sync = false;
 
+    private boolean deletado = false;
+
+    public boolean isDeletado() {
+        return deletado;
+    }
+
+    public void setDeletado(boolean deletado) {
+        this.deletado = deletado;
+    }
+
     public Long getId() {
         return id;
     }
