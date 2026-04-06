@@ -150,8 +150,7 @@ class ClienteServiceTest {
     }
 
     @Test
-    void deveDeletarClienteComSoftDelete() {
-        // O serviço faz soft delete: marca deletado=true e chama save(), não deleteById()
+    void deveDeletarClienteMudandoEstatoDeDelete() {
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(clienteFisica));
         when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
 
