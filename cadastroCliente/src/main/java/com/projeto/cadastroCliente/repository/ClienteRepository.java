@@ -9,8 +9,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
+
     boolean existsByCpf(String cpf);
     boolean existsByCnpj(String cnpj);
+
+    @Query("SELECT COUNT(c) > 0 FROM Cliente c WHERE c.cpf = :cpf AND c.deletado = false")
+    boolean existsByCpfAtivo(@Param("cpf") String cpf);
+
+    @Query("SELECT COUNT(c) > 0 FROM Cliente c WHERE c.cnpj = :cnpj AND c.deletado = false")
+    boolean existsByCnpjAtivo(@Param("cnpj") String cnpj);
 
     Cliente findByCpf(String cpf);
     Cliente findByCnpj(String cnpj);

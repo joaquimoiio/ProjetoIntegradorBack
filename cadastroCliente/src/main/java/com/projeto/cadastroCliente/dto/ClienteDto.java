@@ -1,22 +1,23 @@
 package com.projeto.cadastroCliente.dto;
 
 import com.projeto.cadastroCliente.model.enums.TipoDePessoa;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record ClienteDto(@NotBlank(message = "O nome do cliente nao pode estar em branco")
-                         String nomeDoCliente,
+public record ClienteDto(
+        @NotBlank(message = "O nome do cliente não pode estar em branco")
+        String nomeDoCliente,
 
-                         @NotNull(message = "O tipo de pessoa nao pode estar em branco")
-                         TipoDePessoa tipoDePessoa,
+        @NotNull(message = "O tipo de pessoa não pode estar em branco")
+        TipoDePessoa tipoDePessoa,
 
-                         @NotBlank(message = "O e-mail não pode estar em branco")
-                         String cpfCnpj,
+        @NotBlank(message = "O CPF ou CNPJ não pode estar em branco")
+        String cpfCnpj,
 
-                         @NotBlank(message = "O e-mail não pode estar em branco")
-                         String telefone,
-                         String email) {
+        @NotBlank(message = "O telefone não pode estar em branco")
+        String telefone,
+
+        String email) {
 
     public ClienteDto {
         if (tipoDePessoa == TipoDePessoa.FISICA) {

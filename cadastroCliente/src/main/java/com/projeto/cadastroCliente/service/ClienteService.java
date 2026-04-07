@@ -6,7 +6,6 @@ import com.projeto.cadastroCliente.exception.ClienteException;
 import com.projeto.cadastroCliente.model.Cliente;
 import com.projeto.cadastroCliente.model.enums.TipoDePessoa;
 import com.projeto.cadastroCliente.repository.ClienteRepository;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +33,7 @@ public class ClienteService {
             }
         }
 
-          Cliente cliente = new Cliente();
+        Cliente cliente = new Cliente();
 
         cliente.setNomeDoCliente(clienteDto.nomeDoCliente());
         cliente.setTipoDePessoa(clienteDto.tipoDePessoa());
