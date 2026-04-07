@@ -4,6 +4,7 @@ import com.projeto.cadastroCliente.dto.ClienteDto;
 import com.projeto.cadastroCliente.dto.PutDTO;
 import com.projeto.cadastroCliente.model.Cliente;
 import com.projeto.cadastroCliente.service.ClienteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class ClienteController {
     private ClienteService clienteService;
 
     @PostMapping
-    public ResponseEntity<Cliente> cadastrarCliente(@RequestBody ClienteDto clienteDto){
+    public ResponseEntity<Cliente> cadastrarCliente(@Valid @RequestBody ClienteDto clienteDto) {
         return ResponseEntity.ok(clienteService.cadastrar(clienteDto));
     }
 
@@ -39,9 +40,7 @@ public class ClienteController {
     }
 
     @DeleteMapping("/{id}")
-    public void deletarCliente(@PathVariable Long id){
+    public void deletarCliente(@PathVariable Long id) {
         clienteService.deletar(id);
     }
-
-
 }

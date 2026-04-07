@@ -9,7 +9,6 @@ import com.projeto.cadastroCliente.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,17 +23,33 @@ public class ClienteService {
         String documento = clienteDto.cpfCnpj();
 
         if (clienteDto.tipoDePessoa() == TipoDePessoa.FISICA) {
-            if (clienteRepository.existsByCpf(documento)) {
+            if (clienteRepository.existsByCpfAtivo(documento)) {
                 throw new ClienteException("CPF já cadastrado: " + documento);
             }
         } else {
-            if (clienteRepository.existsByCnpj(documento)) {
+            if (clienteRepository.existsByCnpjAtivo(documento)) {
                 throw new ClienteException("CNPJ já cadastrado: " + documento);
             }
         }
 
-        Cliente cliente = new Cliente();
+        Cliente existente = null;
+        if (clienteDto.tipoDePessoa() == TipoDePessoa.FISICA) {
+            existente = clienteRepository.findByCpf(documento);
+        } else {
+            existente = clienteRepository.findByCnpj(documento);
+        }
 
+        if (existente != null && existente.isDeletado()) {
+            existente.setNomeDoCliente(clienteDto.nomeDoCliente());
+            existente.setTipoDePessoa(clienteDto.tipoDePessoa());
+            existente.setTelefone(clienteDto.telefone());
+            existente.setEmail(clienteDto.email());
+            existente.setSync(false);
+            existente.setDeletado(false);
+            return clienteRepository.save(existente);
+        }
+
+        Cliente cliente = new Cliente();
         cliente.setNomeDoCliente(clienteDto.nomeDoCliente());
         cliente.setTipoDePessoa(clienteDto.tipoDePessoa());
         if (clienteDto.tipoDePessoa() == TipoDePessoa.FISICA) {
@@ -51,23 +66,26 @@ public class ClienteService {
 
         return clienteRepository.save(cliente);
     }
+
     public List<Cliente> lista() {
         return clienteRepository.findAllClientes();
     }
 
-    public Optional<Cliente> buscarPorId(Long id){
+    public Optional<Cliente> buscarPorId(Long id) {
         return clienteRepository.findClienteById(id);
     }
 
     public Cliente deletar(Long id) {
-        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Cliente não encontrada"));
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new ClienteException("Cliente não encontrado"));
         cliente.setSync(false);
         cliente.setDeletado(true);
         return clienteRepository.save(cliente);
     }
 
     public Cliente atualizar(Long id, PutDTO putDTO) {
-        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Cliente não encontrada"));
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new ClienteException("Cliente não encontrado"));
         cliente.setEmail(putDTO.email());
         cliente.setTelefone(putDTO.telefone());
         cliente.setSync(false);
@@ -77,35 +95,36 @@ public class ClienteService {
 
     public Cliente salvar(Cliente cliente) {
 
-            String cpf = (cliente.getCpf() != null && !cliente.getCpf().isEmpty()) ? cliente.getCpf() : null;
-            String cnpj = (cliente.getCnpj() != null && !cliente.getCnpj().isEmpty()) ? cliente.getCnpj() : null;
+        String cpf = (cliente.getCpf() != null && !cliente.getCpf().isEmpty()) ? cliente.getCpf() : null;
+        String cnpj = (cliente.getCnpj() != null && !cliente.getCnpj().isEmpty()) ? cliente.getCnpj() : null;
 
-            cliente.setCpf(cpf);
-            cliente.setCnpj(cnpj);
+        cliente.setCpf(cpf);
+        cliente.setCnpj(cnpj);
 
-            if (cpf != null && clienteRepository.existsByCpf(cpf)) {
-                Cliente existente = clienteRepository.findByCpf(cpf);
-                existente.setNomeDoCliente(cliente.getNomeDoCliente());
-                existente.setTelefone(cliente.getTelefone());
-                existente.setEmail(cliente.getEmail());
-                existente.setSync(true);
-                existente.setDeletado(cliente.isDeletado());
-                return clienteRepository.save(existente);
-            }
+        if (cpf != null && clienteRepository.existsByCpf(cpf)) {
+            Cliente existente = clienteRepository.findByCpf(cpf);
+            existente.setNomeDoCliente(cliente.getNomeDoCliente());
+            existente.setTelefone(cliente.getTelefone());
+            existente.setEmail(cliente.getEmail());
+            existente.setSync(true);
+            existente.setDeletado(cliente.isDeletado());
+            return clienteRepository.save(existente);
+        }
 
-            if (cnpj != null && clienteRepository.existsByCnpj(cnpj)) {
-                Cliente existente = clienteRepository.findByCnpj(cnpj);
-                existente.setNomeDoCliente(cliente.getNomeDoCliente());
-                existente.setTelefone(cliente.getTelefone());
-                existente.setEmail(cliente.getEmail());
-                existente.setSync(true);
-                existente.setDeletado(cliente.isDeletado());
-                return clienteRepository.save(existente);
-            }
+        if (cnpj != null && clienteRepository.existsByCnpj(cnpj)) {
+            Cliente existente = clienteRepository.findByCnpj(cnpj);
+            existente.setNomeDoCliente(cliente.getNomeDoCliente());
+            existente.setTelefone(cliente.getTelefone());
+            existente.setEmail(cliente.getEmail());
+            existente.setSync(true);
+            existente.setDeletado(cliente.isDeletado());
+            return clienteRepository.save(existente);
+        }
 
-            cliente.setSync(true);
-            return clienteRepository.save(cliente);
-
+        // Novo registro — ID gerado pelo backend
+        cliente.setId(null);
+        cliente.setSync(true);
+        return clienteRepository.save(cliente);
     }
 
     public boolean existeCliente(String cpf, String cnpj) {
@@ -118,11 +137,21 @@ public class ClienteService {
         return false;
     }
 
+    public boolean existeClienteAtivo(String cpf, String cnpj) {
+        if (cpf != null && !cpf.equals("null")) {
+            return clienteRepository.existsByCpfAtivo(cpf);
+        }
+        if (cnpj != null && !cnpj.equals("null")) {
+            return clienteRepository.existsByCnpjAtivo(cnpj);
+        }
+        return false;
+    }
+
     public List<Cliente> listaNaoSincronizados() {
         return clienteRepository.findBySync(false);
     }
 
-    public void marcarClienteComSync(List<Cliente> clientes){
+    public void marcarClienteComSync(List<Cliente> clientes) {
         for (Cliente cliente : clientes) {
             cliente.setSync(true);
             clienteRepository.save(cliente);

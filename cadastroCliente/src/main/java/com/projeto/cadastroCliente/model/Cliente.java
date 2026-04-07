@@ -4,8 +4,6 @@ import com.projeto.cadastroCliente.model.enums.TipoDePessoa;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 public class Cliente {
 

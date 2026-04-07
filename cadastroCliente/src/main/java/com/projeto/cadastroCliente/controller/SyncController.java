@@ -1,5 +1,6 @@
 package com.projeto.cadastroCliente.controller;
 
+import com.projeto.cadastroCliente.exception.ClienteException;
 import com.projeto.cadastroCliente.model.Cliente;
 import com.projeto.cadastroCliente.service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +17,23 @@ public class SyncController {
     private ClienteService service;
 
     @PostMapping("/cliente")
-    public ResponseEntity<Cliente> receberCliente(@RequestBody Cliente cliente) {
-        Cliente salvo = service.salvar(cliente);
-        return ResponseEntity.ok(salvo);
+    public ResponseEntity<?> receberCliente(@RequestBody Cliente cliente) {
+        try {
+            cliente.setId(null);
+
+            String cpf = cliente.getCpf();
+            String cnpj = cliente.getCnpj();
+
+            if (!cliente.isDeletado() && service.existeClienteAtivo(cpf, cnpj)) {
+                Cliente salvo = service.salvar(cliente);
+                return ResponseEntity.ok(salvo);
+            }
+
+            Cliente salvo = service.salvar(cliente);
+            return ResponseEntity.ok(salvo);
+        } catch (ClienteException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/cliente/exists/{cpf}/{cnpj}")
