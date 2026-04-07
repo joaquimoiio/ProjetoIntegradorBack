@@ -20,7 +20,7 @@ public class ClienteController {
     private ClienteService clienteService;
 
     @PostMapping
-    public ResponseEntity<Cliente> cadastrarCliente(@Valid @RequestBody ClienteDto clienteDto) {
+    public ResponseEntity<Cliente> cadastrarCliente(@RequestBody ClienteDto clienteDto) {
         return ResponseEntity.ok(clienteService.cadastrar(clienteDto));
     }
 

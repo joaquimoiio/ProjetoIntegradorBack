@@ -36,14 +36,6 @@ public class SyncController {
         }
     }
 
-    @GetMapping("/cliente/exists/{cpf}/{cnpj}")
-    public ResponseEntity<Boolean> existeCliente(
-            @PathVariable(required = false) String cpf,
-            @PathVariable(required = false) String cnpj) {
-        boolean exists = service.existeCliente(cpf, cnpj);
-        return ResponseEntity.ok(exists);
-    }
-
     @GetMapping("/cliente")
     public ResponseEntity<List<Cliente>> listarClientes() {
         List<Cliente> clientes = service.listaNaoSincronizados();

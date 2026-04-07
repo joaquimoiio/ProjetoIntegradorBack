@@ -24,13 +24,46 @@ public class ClienteService {
         String documento = clienteDto.cpfCnpj();
 
         if (clienteDto.tipoDePessoa() == TipoDePessoa.FISICA) {
-            if (clienteRepository.existsByCpf(documento)) {
+            if (clienteRepository.existsByCpfAtivo(documento)) {
                 throw new ClienteException("CPF já cadastrado: " + documento);
             }
         } else {
-            if (clienteRepository.existsByCnpj(documento)) {
+            if (clienteRepository.existsByCnpjAtivo(documento)) {
                 throw new ClienteException("CNPJ já cadastrado: " + documento);
             }
+        }
+
+        if (clienteDto.nomeDoCliente() == null || clienteDto.nomeDoCliente().isBlank()) {
+            throw new ClienteException("O nome do cliente não pode estar em branco");
+        }
+
+        if (clienteDto.telefone() == null || clienteDto.telefone().isBlank()) {
+            throw new ClienteException("O telefone do cliente não pode estar em branco");
+        }
+
+        if (clienteDto.tipoDePessoa() == null ) {
+            throw new ClienteException("O tipo do cliente não pode estar em branco");
+        }
+        if (clienteDto.cpfCnpj() == null || clienteDto.cpfCnpj().isEmpty()) {
+            throw new ClienteException("O cpf ou cnpj do cliente não pode estar em branco");
+        }
+
+
+        Cliente existente = null;
+        if (clienteDto.tipoDePessoa() == TipoDePessoa.FISICA) {
+            existente = clienteRepository.findByCpf(documento);
+        } else {
+            existente = clienteRepository.findByCnpj(documento);
+        }
+
+        if (existente != null && existente.isDeletado()) {
+            existente.setNomeDoCliente(clienteDto.nomeDoCliente());
+            existente.setTipoDePessoa(clienteDto.tipoDePessoa());
+            existente.setTelefone(clienteDto.telefone());
+            existente.setEmail(clienteDto.email());
+            existente.setSync(false);
+            existente.setDeletado(false);
+            return clienteRepository.save(existente);
         }
 
         Cliente cliente = new Cliente();
@@ -60,7 +93,7 @@ public class ClienteService {
     }
 
     public Cliente deletar(Long id) {
-        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Cliente não encontrada"));
+        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Cliente não encontrado"));
         cliente.setSync(false);
         cliente.setDeletado(true);
         return clienteRepository.save(cliente);
@@ -102,18 +135,18 @@ public class ClienteService {
                 existente.setDeletado(cliente.isDeletado());
                 return clienteRepository.save(existente);
             }
-
+            cliente.setId(null);
             cliente.setSync(true);
             return clienteRepository.save(cliente);
 
     }
 
-    public boolean existeCliente(String cpf, String cnpj) {
+    public boolean existeClienteAtivo(String cpf, String cnpj) {
         if (cpf != null && !cpf.equals("null")) {
-            return clienteRepository.existsByCpf(cpf);
+            return clienteRepository.existsByCpfAtivo(cpf);
         }
         if (cnpj != null && !cnpj.equals("null")) {
-            return clienteRepository.existsByCnpj(cnpj);
+            return clienteRepository.existsByCnpjAtivo(cnpj);
         }
         return false;
     }

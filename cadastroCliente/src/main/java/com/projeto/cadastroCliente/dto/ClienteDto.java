@@ -20,17 +20,18 @@ public record ClienteDto(
         String email) {
 
     public ClienteDto {
-        if (tipoDePessoa == TipoDePessoa.FISICA) {
-            if (!validarCPF(cpfCnpj)) {
-                throw new IllegalArgumentException("CPF inválido: " + cpfCnpj);
+        if (cpfCnpj != null && !cpfCnpj.isBlank()) {
+            if (tipoDePessoa == TipoDePessoa.FISICA) {
+                if (!validarCPF(cpfCnpj)) {
+                    throw new IllegalArgumentException("CPF inválido: " + cpfCnpj);
+                }
+            } else if (tipoDePessoa == TipoDePessoa.JURIDICA) {
+                if (!validarCNPJ(cpfCnpj)) {
+                    throw new IllegalArgumentException("CNPJ inválido: " + cpfCnpj);
+                }
             }
-        } else if (tipoDePessoa == TipoDePessoa.JURIDICA) {
-            if (!validarCNPJ(cpfCnpj)) {
-                throw new IllegalArgumentException("CNPJ inválido: " + cpfCnpj);
-            }
+            cpfCnpj = cpfCnpj.replaceAll("\\D", "");
         }
-
-        cpfCnpj = cpfCnpj.replaceAll("\\D", "");
     }
 
     private static boolean validarCPF(String cpf) {
