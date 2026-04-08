@@ -9,7 +9,6 @@ import com.projeto.cadastroCliente.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -100,7 +99,7 @@ public class ClienteService {
     }
 
     public Cliente atualizar(Long id, PutDTO putDTO) {
-        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Cliente não encontrada"));
+        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteException("Cliente não encontrado"));
         cliente.setEmail(putDTO.email());
         cliente.setTelefone(putDTO.telefone());
         cliente.setSync(false);
@@ -139,16 +138,6 @@ public class ClienteService {
             cliente.setSync(true);
             return clienteRepository.save(cliente);
 
-    }
-
-    public boolean existeClienteAtivo(String cpf, String cnpj) {
-        if (cpf != null && !cpf.equals("null")) {
-            return clienteRepository.existsByCpfAtivo(cpf);
-        }
-        if (cnpj != null && !cnpj.equals("null")) {
-            return clienteRepository.existsByCnpjAtivo(cnpj);
-        }
-        return false;
     }
 
     public List<Cliente> listaNaoSincronizados() {

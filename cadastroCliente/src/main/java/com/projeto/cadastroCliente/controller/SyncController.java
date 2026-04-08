@@ -20,15 +20,6 @@ public class SyncController {
     public ResponseEntity<?> receberCliente(@RequestBody Cliente cliente) {
         try {
             cliente.setId(null);
-
-            String cpf = cliente.getCpf();
-            String cnpj = cliente.getCnpj();
-
-            if (!cliente.isDeletado() && service.existeClienteAtivo(cpf, cnpj)) {
-                Cliente salvo = service.salvar(cliente);
-                return ResponseEntity.ok(salvo);
-            }
-
             Cliente salvo = service.salvar(cliente);
             return ResponseEntity.ok(salvo);
         } catch (ClienteException e) {
