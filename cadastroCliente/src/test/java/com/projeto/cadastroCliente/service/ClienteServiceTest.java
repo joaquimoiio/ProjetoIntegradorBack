@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,7 +73,8 @@ class ClienteServiceTest {
 
     @Test
     void deveCadastrarClienteFisicaComSucesso() {
-        when(clienteRepository.existsByCpf(anyString())).thenReturn(false);
+        when(clienteRepository.existsByCpfAtivo(anyString())).thenReturn(false);
+        when(clienteRepository.findByCpf(anyString())).thenReturn(null);
         when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
 
         Cliente resultado = clienteService.cadastrar(clienteFisicaDto);
@@ -84,7 +86,8 @@ class ClienteServiceTest {
 
     @Test
     void deveCadastrarClienteJuridicaComSucesso() {
-        when(clienteRepository.existsByCnpj(anyString())).thenReturn(false);
+        when(clienteRepository.existsByCnpjAtivo(anyString())).thenReturn(false);
+        when(clienteRepository.findByCnpj(anyString())).thenReturn(null);
         when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteJuridica);
 
         Cliente resultado = clienteService.cadastrar(clienteJuridicaDto);
@@ -95,8 +98,8 @@ class ClienteServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoCpfJaExiste() {
-        when(clienteRepository.existsByCpf(anyString())).thenReturn(true);
+    void deveLancarExcecaoQuandoCpfAtivoJaExiste() {
+        when(clienteRepository.existsByCpfAtivo(anyString())).thenReturn(true);
 
         assertThrows(ClienteException.class, () -> clienteService.cadastrar(clienteFisicaDto));
 
@@ -104,8 +107,8 @@ class ClienteServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoCnpjJaExiste() {
-        when(clienteRepository.existsByCnpj(anyString())).thenReturn(true);
+    void deveLancarExcecaoQuandoCnpjAtivoJaExiste() {
+        when(clienteRepository.existsByCnpjAtivo(anyString())).thenReturn(true);
 
         assertThrows(ClienteException.class, () -> clienteService.cadastrar(clienteJuridicaDto));
 
@@ -113,11 +116,74 @@ class ClienteServiceTest {
     }
 
     @Test
-    void deveAtualizarClienteComSucesso() {
-        PutDTO putDTO = new PutDTO(
-                "(11) 77777-7777",
-                "joao.novo@email.com"
+    void deveReativarClienteFisicaDeletado() {
+        clienteFisica.setDeletado(true);
+
+        when(clienteRepository.existsByCpfAtivo(anyString())).thenReturn(false);
+        when(clienteRepository.findByCpf(anyString())).thenReturn(clienteFisica);
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
+
+        Cliente resultado = clienteService.cadastrar(clienteFisicaDto);
+
+        assertNotNull(resultado);
+        assertFalse(clienteFisica.isDeletado());
+        assertFalse(clienteFisica.isSync());
+        verify(clienteRepository).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoNomeEmBrancoCadastrar() {
+        ClienteDto dto = new ClienteDto(
+                "", TipoDePessoa.FISICA, "52998224725", "(11) 99999-9999", "email@email.com"
         );
+
+        assertThrows(ClienteException.class, () -> clienteService.cadastrar(dto));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoTelefoneEmBrancoCadastrar() {
+        ClienteDto dto = new ClienteDto(
+                "João Silva", TipoDePessoa.FISICA, "52998224725", "", "email@email.com"
+        );
+
+        assertThrows(ClienteException.class, () -> clienteService.cadastrar(dto));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoTelefoneInvalidoCadastrar() {
+        ClienteDto dto = new ClienteDto(
+                "João Silva", TipoDePessoa.FISICA, "52998224725", "123", "email@email.com"
+        );
+
+        assertThrows(ClienteException.class, () -> clienteService.cadastrar(dto));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoCpfInvalidoCadastrar() {
+        ClienteDto dto = new ClienteDto(
+                "João Silva", TipoDePessoa.FISICA, "12345678900", "(11) 99999-9999", "email@email.com"
+        );
+
+        assertThrows(ClienteException.class, () -> clienteService.cadastrar(dto));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoCnpjInvalidoCadastrar() {
+        ClienteDto dto = new ClienteDto(
+                "Empresa LTDA", TipoDePessoa.JURIDICA, "11111111111111", "(11) 88888-8888", "email@email.com"
+        );
+
+        assertThrows(ClienteException.class, () -> clienteService.cadastrar(dto));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveAtualizarClienteComSucesso() {
+        PutDTO putDTO = new PutDTO("(11) 77777-7777", "joao.novo@email.com");
 
         Cliente clienteAtualizado = new Cliente();
         clienteAtualizado.setId(1L);
@@ -145,12 +211,11 @@ class ClienteServiceTest {
         when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ClienteException.class, () -> clienteService.atualizar(99L, putDTO));
-
         verify(clienteRepository, never()).save(any(Cliente.class));
     }
 
     @Test
-    void deveDeletarClienteMudandoEstatoDeDelete() {
+    void deveDeletarClienteMudandoEstadoDeDelete() {
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(clienteFisica));
         when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
 
@@ -168,7 +233,122 @@ class ClienteServiceTest {
         when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ClienteException.class, () -> clienteService.deletar(99L));
-
         verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+
+    @Test
+    void deveSalvarClienteNovoComCpf() {
+        clienteFisica.setSync(true);
+
+        when(clienteRepository.existsByCpf(anyString())).thenReturn(false);
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
+
+        Cliente resultado = clienteService.salvar(clienteFisica);
+
+        assertNotNull(resultado);
+        verify(clienteRepository).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveSalvarClienteNovoComCnpj() {
+        clienteJuridica.setSync(true);
+
+        when(clienteRepository.existsByCnpj(anyString())).thenReturn(false);
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteJuridica);
+
+        Cliente resultado = clienteService.salvar(clienteJuridica);
+
+        assertNotNull(resultado);
+        verify(clienteRepository).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveAtualizarClienteExistenteComCpfNoSalvar() {
+        when(clienteRepository.existsByCpf("52998224725")).thenReturn(true);
+        when(clienteRepository.findByCpf("52998224725")).thenReturn(clienteFisica);
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteFisica);
+
+        Cliente novo = new Cliente();
+        novo.setNomeDoCliente("João Atualizado");
+        novo.setTipoDePessoa(TipoDePessoa.FISICA);
+        novo.setCpf("52998224725");
+        novo.setTelefone("(11) 99999-9999");
+        novo.setEmail("novo@email.com");
+
+        Cliente resultado = clienteService.salvar(novo);
+
+        assertNotNull(resultado);
+        assertEquals("João Atualizado", clienteFisica.getNomeDoCliente());
+        assertTrue(clienteFisica.isSync());
+        verify(clienteRepository).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoNomeEmBrancoSalvar() {
+        Cliente cliente = new Cliente();
+        cliente.setNomeDoCliente("");
+        cliente.setTipoDePessoa(TipoDePessoa.FISICA);
+        cliente.setCpf("52998224725");
+        cliente.setTelefone("(11) 99999-9999");
+
+        assertThrows(ClienteException.class, () -> clienteService.salvar(cliente));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoTelefoneInvalidoSalvar() {
+        Cliente cliente = new Cliente();
+        cliente.setNomeDoCliente("João Silva");
+        cliente.setTipoDePessoa(TipoDePessoa.FISICA);
+        cliente.setCpf("52998224725");
+        cliente.setTelefone("123");
+
+        assertThrows(ClienteException.class, () -> clienteService.salvar(cliente));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoCpfInvalidoSalvar() {
+        Cliente cliente = new Cliente();
+        cliente.setNomeDoCliente("João Silva");
+        cliente.setTipoDePessoa(TipoDePessoa.FISICA);
+        cliente.setCpf("12345678900");
+        cliente.setTelefone("(11) 99999-9999");
+
+        assertThrows(ClienteException.class, () -> clienteService.salvar(cliente));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoSemCpfECnpjSalvar() {
+        Cliente cliente = new Cliente();
+        cliente.setNomeDoCliente("João Silva");
+        cliente.setTipoDePessoa(TipoDePessoa.FISICA);
+        cliente.setTelefone("(11) 99999-9999");
+
+        assertThrows(ClienteException.class, () -> clienteService.salvar(cliente));
+        verify(clienteRepository, never()).save(any(Cliente.class));
+    }
+
+    @Test
+    void deveListarClientesNaoSincronizados() {
+        when(clienteRepository.findBySync(false)).thenReturn(List.of(clienteFisica));
+
+        List<Cliente> resultado = clienteService.listaNaoSincronizados();
+
+        assertEquals(1, resultado.size());
+        verify(clienteRepository).findBySync(false);
+    }
+
+    @Test
+    void deveMarcarClientesComoSincronizados() {
+        List<Cliente> clientes = List.of(clienteFisica, clienteJuridica);
+
+        clienteService.marcarClienteComSync(clientes);
+
+        assertTrue(clienteFisica.isSync());
+        assertTrue(clienteJuridica.isSync());
+        verify(clienteRepository, times(2)).save(any(Cliente.class));
     }
 }
