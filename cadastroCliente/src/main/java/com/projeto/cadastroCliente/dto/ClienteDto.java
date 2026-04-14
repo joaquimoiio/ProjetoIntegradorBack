@@ -11,7 +11,7 @@ public record ClienteDto(
         @NotNull(message = "O tipo de pessoa não pode estar em branco")
         TipoDePessoa tipoDePessoa,
 
-        @NotBlank(message = "O CPF ou CNPJ não pode estar em branco")
+        @NotBlank(message = "O CPF ou CNP não pode estar em branco")
         String cpfCnpj,
 
         @NotBlank(message = "O telefone não pode estar em branco")
